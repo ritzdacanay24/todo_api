@@ -19,6 +19,13 @@ router.get('/callback', async (req, res) => {
 
 })
 
+router.get('/clientCredentials', async (req, res) => {
+
+    let token = await tokenService.getByClientCredentials();
+    return res.send(token);
+
+})
+
 //set cookie
 router.get('/refreshCookie', async (req, res) => {
     let token = await tokenService.getByRefresh(req.headers.reftoken);

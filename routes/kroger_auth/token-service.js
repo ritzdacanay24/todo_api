@@ -9,12 +9,22 @@ const redirectUrl = config.kroger.redirectUrl;
 const baseUrl = config.kroger.baseUrl;
 
 // Get token by authorization code (getByAuth)
+// Send user to kroger auth page to retrive refresh token and auth code. 
+// this also lets the user create a kroger account. 
+// If you create kroger account, we can get the user profile information too. How cool!!!
 const getByAuth = async (code) => {
 
     const body = `grant_type=authorization_code&code=${encodeURIComponent(
         code
     )}&redirect_uri=${encodeURIComponent(redirectUrl)}`;
 
+    return await get(body);
+}
+
+// Get token if you want to validate by user credentials
+// For example, once the user logs into the grocery todo application. 
+const getByClientCredentials = async () => {
+    const body = `grant_type=client_credentials&scope=product.compact`;
     return await get(body);
 }
 
@@ -58,5 +68,6 @@ const get = async (body) => {
 }
 
 exports.getByAuth = getByAuth;
-exports.get = get;
+exports.get = get; 
 exports.getByRefresh = getByRefresh;
+exports.getByClientCredentials = getByClientCredentials;
