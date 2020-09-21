@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 var request = require('request');
 const tokenService = require('./kroger_auth/token-service');
-const config = require('config');
+const { auth } = require('../middleware/auth');
 
 //set cookie
 router.get('/callback', async (req, res) => {
@@ -33,7 +33,7 @@ router.get('/refreshCookie', async (req, res) => {
 })
 
 //search for groccery item
-router.get('/:itemName/:locationId/:start', async function (req, res) {
+router.get('/:itemName/:locationId/:start', auth, async function (req, res) {
     let itemName = req.params.itemName;
     let locationId = req.params.locationId;
     let start = req.params.start;
@@ -57,7 +57,7 @@ router.get('/:itemName/:locationId/:start', async function (req, res) {
 });
 
 //get details of grocery item by id
-router.get('/detail/:productId/:locationId', function (req, res) {
+router.get('/detail/:productId/:locationId', auth, function (req, res) {
     let productId = req.params.productId;
     let locationId = req.params.locationId;
     let accToken = req.headers.authorization.split(' ')[1];
@@ -76,7 +76,7 @@ router.get('/detail/:productId/:locationId', function (req, res) {
 });
 
 //search location to pull groccery items.
-router.get('/location/:locationId', function (req, res) {
+router.get('/location/:locationId', auth, function (req, res) {
     let locationId = req.params.locationId;
     let accToken = req.headers.authorization.split(' ')[1];
 

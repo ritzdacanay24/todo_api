@@ -4,10 +4,11 @@ const { User } = require('../models/user');
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const { auth } = require('../middleware/auth');
 
 //create list
 // return new data with id
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
 
     const { error } = validateList(req.body);
     if (error) return res.status(400).send(error.details[0].message);
@@ -38,7 +39,7 @@ router.post('/', async (req, res) => {
 
 //update list by id
 // returns new data
-router.put('/:listId', async (req, res) => {
+router.put('/:listId', auth, async (req, res) => {
 
     // const { error } = validateListUpdate(req.body);
     // if (error) return res.status(400).send(error);
@@ -61,7 +62,7 @@ router.put('/:listId', async (req, res) => {
 });
 
 //delete list by id
-router.delete('/:listId', async (req, res) => {
+router.delete('/:listId', auth, async (req, res) => {
     try {
 
         if (!mongoose.Types.ObjectId.isValid(req.params.listId)) return res.status(400).send("Invalid object id");
@@ -81,7 +82,7 @@ router.delete('/:listId', async (req, res) => {
 
 //get lists by current user id
 //returns all data based on user id
-router.get('/:currentUserid', async (req, res) => {
+router.get('/:currentUserid', auth, async (req, res) => {
     try {
 
         if (!mongoose.Types.ObjectId.isValid(req.params.currentUserid)) return res.status(400).send("Invalid object id");
@@ -106,6 +107,6 @@ router.get('/:currentUserid', async (req, res) => {
     } catch (ex) {
         return res.status(500).send(`Internal Server Error: ${ex}`);
     }
-});  
+});
 
 module.exports = router

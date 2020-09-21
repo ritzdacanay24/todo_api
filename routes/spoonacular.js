@@ -3,10 +3,11 @@ const express = require('express');
 const router = express.Router();
 const Axios = require('axios');
 const config = require('config');
+const { auth } = require('../middleware/auth');
 
 const rapidApiKey = config.spoonacular.key;
 
-router.post('/extractRecipeFromUrl', async (req, res) => {
+router.post('/extractRecipeFromUrl', auth, async (req, res) => {
     try {
         
         let results = await Axios({
@@ -50,7 +51,7 @@ router.post('/extractRecipeFromUrl', async (req, res) => {
     }
 });
 
-router.get('/searchRecipe/:total/total/:offset/startFrom/:recipeName/recipe', async (req, res) => {
+router.get('/searchRecipe/:total/total/:offset/startFrom/:recipeName/recipe', auth, async (req, res) => {
     try {
 
         let results = await Axios({
@@ -75,7 +76,7 @@ router.get('/searchRecipe/:total/total/:offset/startFrom/:recipeName/recipe', as
     }
 });
 
-router.get('/searchRecipeById/:id', async (req, res) => {
+router.get('/searchRecipeById/:id', auth, async (req, res) => {
     try {
 
         let results = await Axios({
@@ -117,7 +118,7 @@ router.get('/searchRecipeById/:id', async (req, res) => {
     }
 });
 
-router.get('/informationBulk', async (req, res) => {
+router.get('/informationBulk', auth, async (req, res) => {
     try {
         let results = await Axios({
             "method": "GET",
@@ -138,7 +139,7 @@ router.get('/informationBulk', async (req, res) => {
     }
 });
 
-router.get('/mealPlanGenerate', async (req, res) => {
+router.get('/mealPlanGenerate', auth, async (req, res) => {
     try {
         let results = await Axios({
             "method": "GET",

@@ -5,9 +5,11 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 
+const { auth } = require('../middleware/auth');
+
 // create recipe
 // return new data with id
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
     try {
 
         const { error } = validateRecipe(req.body);
@@ -28,7 +30,7 @@ router.post('/', async (req, res) => {
 
 // get recipes by userId
 // return array
-router.get('/:userId', async (req, res) => {
+router.get('/:userId', auth, async (req, res) => {
     try {
 
         const isUserFound = await User.findById(req.params.userId);
@@ -45,7 +47,7 @@ router.get('/:userId', async (req, res) => {
 
 // get recipe by id
 // return object
-router.get('/:recipeId/recipeId', async (req, res) => {
+router.get('/:recipeId/recipeId', auth, async (req, res) => {
     try {
 
         const recipe = await Recipe.findOne({ _id: req.params.recipeId });
@@ -59,7 +61,7 @@ router.get('/:recipeId/recipeId', async (req, res) => {
 
 // delete recipe
 // return success message object?
-router.delete('/:recipeId', async (req, res) => {
+router.delete('/:recipeId', auth, async (req, res) => {
     try {
         let recipeId = req.params.recipeId;
 

@@ -2,6 +2,7 @@ const { User, validateUser, validateUpdateUser, validateLogin } = require('../mo
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
+const { auth } = require('../middleware/auth');
 
 //create user
 router.post('/', async (req, res) => {
@@ -10,7 +11,7 @@ router.post('/', async (req, res) => {
         if (error) return res.status(400).send(error.details[0].message);
 
         let user = await User.findOne({ email: req.body.email });
-        if (user) return res.status(400).send("User already registered")
+        if (user) return res.status(400).send({message:"User already registered"})
 
         const salt = await bcrypt.genSalt(10);
 
@@ -22,7 +23,7 @@ router.post('/', async (req, res) => {
         })
 
         await user.save();
-        return res.send(user);
+        return res.send({message:"Successfully registered"});
     }
 
     catch (ex) {
@@ -31,7 +32,7 @@ router.post('/', async (req, res) => {
 })
 
 //update user
-router.put('/:userId', async (req, res) => {
+router.put('/:userId', auth, async (req, res) => {
     try {
 
         let userId = req.params.userId;
@@ -55,7 +56,7 @@ router.put('/:userId', async (req, res) => {
 
 //Get all Users
 //Returns an array
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
     try {
         let user = await User.find();
         return res.send(user);
@@ -68,7 +69,7 @@ router.get('/', async (req, res) => {
 
 //Get all Users
 //Returns an object
-router.get('/:userId', async (req, res) => {
+router.get('/:userId', auth, async (req, res) => {
     try {
         let userId = req.params.userId;
         let user = await User.findOne({_id:userId});

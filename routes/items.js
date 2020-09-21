@@ -1,6 +1,7 @@
 const { Item, validateItem } = require('../models/item');
 const { List } = require('../models/list');
 const { User } = require('../models/user');
+const { auth } = require('../middleware/auth');
 
 const express = require('express');
 const router = express.Router();
@@ -8,7 +9,7 @@ const mongoose = require('mongoose');
 
 // create list details
 // return new data with id
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
     try {
 
         const { error } = validateItem(req.body);
@@ -32,7 +33,7 @@ router.post('/', async (req, res) => {
 
 // update list detail by id
 // returns new data
-router.put('/:itemId', async (req, res) => {
+router.put('/:itemId', auth, async (req, res) => {
 
     try {
 
@@ -53,7 +54,7 @@ router.put('/:itemId', async (req, res) => {
 
 //delete list by id
 // returns original data
-router.delete('/:itemId', async (req, res) => {
+router.delete('/:itemId', auth, async (req, res) => {
     try {
 
         if (!mongoose.Types.ObjectId.isValid(req.params.itemId)) return res.status(400).send("Invalid object id");
@@ -73,7 +74,7 @@ router.delete('/:itemId', async (req, res) => {
 
 //get details lists by list id
 //returns all data based on id
-router.get('/:listId', async (req, res) => {
+router.get('/:listId', auth, async (req, res) => {
     try {
 
         if (!mongoose.Types.ObjectId.isValid(req.params.listId)) return res.status(400).send("Invalid object id");
@@ -93,7 +94,7 @@ router.get('/:listId', async (req, res) => {
 
 // create bulk items
 // return newly added bulk items with its id's
-router.post('/saveBulkItems/:currentUser/:listId', async (req, res) => {
+router.post('/saveBulkItems/:currentUser/:listId', auth, async (req, res) => {
     try {
 
         const isUserFound = await User.findById(req.params.currentUser);
@@ -103,7 +104,7 @@ router.post('/saveBulkItems/:currentUser/:listId', async (req, res) => {
         if (!isListFound) return res.status(400).send(`List id "${req.params.listId}" not found.`);
 
         let items = req.body;
-        
+
         items.forEach(function (element) {
             element.listId = req.params.listId;
             element.createdBy = req.params.currentUser;
@@ -126,7 +127,7 @@ router.post('/saveBulkItems/:currentUser/:listId', async (req, res) => {
 
 // delete bulk items
 // return newly added bulk items with its id's
-router.delete('/deleteBulkItems/:listId', async (req, res) => {
+router.delete('/deleteBulkItems/:listId', auth, async (req, res) => {
     try {
 
         let newlist = await Item.deleteMany({ "listId": req.params.listId });
@@ -140,7 +141,7 @@ router.delete('/deleteBulkItems/:listId', async (req, res) => {
 
 // update bulk items
 // return newly updated array
-router.put('/updateBulkItems/:listId', async (req, res) => {
+router.put('/updateBulkItems/:listId', auth, async (req, res) => {
     try {
 
         let updateItems = await Item.updateMany(
@@ -157,7 +158,7 @@ router.put('/updateBulkItems/:listId', async (req, res) => {
 
 // update bulk group items
 // return newly updated array
-router.put('/updateBulkGroupItems/:listId/:aisleName', async (req, res) => {
+router.put('/updateBulkGroupItems/:listId/:aisleName', auth, async (req, res) => {
     try {
 
         let updateItems = await Item.updateMany(
@@ -174,7 +175,7 @@ router.put('/updateBulkGroupItems/:listId/:aisleName', async (req, res) => {
 
 // move item
 // return newly updated array
-router.put('/moveItem/:itemId/:aisleName', async (req, res) => {
+router.put('/moveItem/:itemId/:aisleName', auth, async (req, res) => {
     try {
 
         let updateItems = await Item.updateMany(
@@ -191,7 +192,7 @@ router.put('/moveItem/:itemId/:aisleName', async (req, res) => {
 
 // update and move bulk items
 // return newly updated array
-router.put('/moveBulkItems/:aisleName', async (req, res) => {
+router.put('/moveBulkItems/:aisleName', auth, async (req, res) => {
     try {
 
         let updateItems = await Item.updateMany(
@@ -208,7 +209,7 @@ router.put('/moveBulkItems/:aisleName', async (req, res) => {
 
 // delete bulk group items
 // return newly added bulk items with its id's
-router.delete('/deleteBulkItemsByAisle/:listId/:aisleName', async (req, res) => {
+router.delete('/deleteBulkItemsByAisle/:listId/:aisleName', auth, async (req, res) => {
     try {
 
         let newlist = await Item.deleteMany({ "listId": req.params.listId, "aisle": req.params.aisleName });
