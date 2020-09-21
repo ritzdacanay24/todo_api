@@ -117,4 +117,46 @@ router.get('/searchRecipeById/:id', async (req, res) => {
     }
 });
 
+router.get('/informationBulk', async (req, res) => {
+    try {
+        let results = await Axios({
+            "method": "GET",
+            "url": "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/informationBulk",
+            "headers": {
+                "content-type": "application/octet-stream",
+                "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+                "x-rapidapi-key": rapidApiKey,
+                "useQueryString": true
+            }, "params": {
+                "ids": req.query.ids
+            }
+        })
+        return res.send(results.data);
+
+    } catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+});
+
+router.get('/mealPlanGenerate', async (req, res) => {
+    try {
+        let results = await Axios({
+            "method": "GET",
+            "url": "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/mealplans/generate",
+            "headers": {
+                "content-type": "application/octet-stream",
+                "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+                "x-rapidapi-key": rapidApiKey,
+                "useQueryString": true
+            }, "params": {
+                "timeFrame": "week"
+            }
+        })
+        return res.send(results.data);
+
+    } catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+});
+
 module.exports = router
