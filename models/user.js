@@ -10,7 +10,11 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true, minlength: 5 },
     createdDate: { type: String, default: Date },
     isAdmin: { type: Boolean, default: false },
-    avitar: { type: String, default: 'path/to/avitar' }
+    avitar: { type: String, default: 'default.jpg' },
+    address: { type: String },
+    city: { type: String },
+    zipCode: { type: String },
+    state: { type: String }
 });
 
 userSchema.methods.generateAuthToken = function () {
