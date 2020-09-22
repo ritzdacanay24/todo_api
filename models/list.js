@@ -75,7 +75,8 @@ const listSchema = new mongoose.Schema({
     link: { type: String, required: true },
     detailCount: { type: Number, default: 0 },
     archive: { type: Boolean, default: false, enum: [false, true] },
-    groups: { type: [groupSchema], default: groupList }
+    groups: { type: [groupSchema], default: groupList },
+    subscribers: { type: Array,  default: [] }
 });
 
 const List = mongoose.model('list', listSchema);

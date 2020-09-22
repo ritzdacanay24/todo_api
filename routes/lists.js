@@ -80,14 +80,15 @@ router.delete('/:listId', auth, async (req, res) => {
     }
 });
 
-//get lists by current user id
+//get lists by current user id and subscribers
 //returns all data based on user id
 router.get('/:currentUserid', auth, async (req, res) => {
     try {
 
         if (!mongoose.Types.ObjectId.isValid(req.params.currentUserid)) return res.status(400).send("Invalid object id");
 
-        let lists = await List.find({ "userId": req.params.currentUserid, "active": { "$ne": "0" } });
+        //let lists = await List.find({ "userId": req.params.currentUserid, "active": { "$ne": "0" } });
+        let lists = await List.find({ $or: [{ 'userId': req.params.currentUserid }, { 'subscribers': { $in: [req.params.currentUserid] } }] });
         let listDetails = await Item.find({ createdBy: req.params.currentUserid });
 
         //get total list details for each list.
@@ -103,6 +104,45 @@ router.get('/:currentUserid', auth, async (req, res) => {
         })
 
         return res.send(lists);
+
+    } catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+});
+
+//Add subscriber to list
+router.put('/subscribers/:listId/:currentUserid', async (req, res) => {
+    try {
+
+        let list = await List.findOne({ "_id": req.params.listId });
+        let isFound = list.subscribers.includes(req.params.currentUserid);
+        if (isFound) return res.status(400).send("User already subscribed");
+        list.subscribers.push(req.params.currentUserid);
+
+        list.save();
+        return res.send(list);
+
+    } catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+});
+
+//delete subscriber from list
+router.delete('/subscribers/:listId/:currentUserid', async (req, res) => {
+    try {
+
+        let list = await List.findOne({ "_id": req.params.listId });
+        let isFound = list.subscribers.includes(req.params.currentUserid);
+        if (!isFound) res.status(400).send("User not found in subscribed list.");
+
+        for (let i = 0; i < list.subscribers.length; i++)
+            if (list.subscribers[i] === req.params.currentUserid) {
+                list.subscribers.splice(i, 1);
+                break;
+            }
+
+        list.save();
+        return res.send(list);
 
     } catch (ex) {
         return res.status(500).send(`Internal Server Error: ${ex}`);
