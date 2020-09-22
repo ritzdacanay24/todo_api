@@ -221,4 +221,28 @@ router.delete('/deleteBulkItemsByAisle/:listId/:aisleName', auth, async (req, re
     }
 });
 
+// simple overview
+router.get('/overview/:userId', async (req, res) => {
+    try {
+
+        let items = await Item.find({ createdBy: req.params.userId });
+
+        let stats = {};
+        stats.total = items.length;
+        stats.unfinished = 0;
+        stats.completed = 0;
+        stats.totalCost = 0;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].completedDate === null) stats.unfinished++;
+            if (items[i].completedDate !== null) stats.completed++;
+            stats.totalCost = stats.totalCost + items[i].price;
+        }
+
+        return res.send(stats);
+
+    } catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+});
+
 module.exports = router
