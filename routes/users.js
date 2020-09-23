@@ -1,8 +1,10 @@
-const { User, validateUser, validateUpdateUser, validateLogin } = require('../models/user');
+const { User, validateUser, validateLogin, generateToken } = require('../models/user');
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const { auth } = require('../middleware/auth');
+const email = require('./sendEmail');
+const config = require('config');
 
 //create user
 router.post('/', async (req, res) => {
@@ -11,7 +13,7 @@ router.post('/', async (req, res) => {
         if (error) return res.status(400).send(error.details[0].message);
 
         let user = await User.findOne({ email: req.body.email });
-        if (user) return res.status(400).send({message:"User already registered"})
+        if (user) return res.status(400).send({ message: "User already registered" })
 
         const salt = await bcrypt.genSalt(10);
 
@@ -23,7 +25,7 @@ router.post('/', async (req, res) => {
         })
 
         await user.save();
-        return res.send({message:"Successfully registered"});
+        return res.send({ message: "Successfully registered" });
     }
 
     catch (ex) {
@@ -72,7 +74,7 @@ router.get('/', auth, async (req, res) => {
 router.get('/:userId', auth, async (req, res) => {
     try {
         let userId = req.params.userId;
-        let user = await User.findOne({_id:userId});
+        let user = await User.findOne({ _id: userId });
         if (!user) return res.status(400).send("User not found");
         return res.send(user);
     }
@@ -99,10 +101,93 @@ router.post('/login', async (req, res) => {
         return res
             .header('x-auth-token', token)
             .header('access-control-expose-headers', 'x-auth-token')
-            .send({ appToken: token, userId:user._id});
+            .send({ appToken: token, userId: user._id });
     }
     catch (ex) {
         return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+})
+
+//Forgot password email check
+router.post('/forgotPassword', async (req, res) => {
+    try {
+
+        let user = await User.findOne({ email: req.body.email });
+        if (!user) return res.status(400).send('Email not found');
+
+        let randomToken = generateToken(25);
+
+        user.resetPasswordToken = {
+            token: randomToken
+        }
+
+        await user.save();
+
+        let resetLink = `${config.mainAppUrl}ResetPassword?token=${randomToken}`
+        let mailOptions = {
+            to: user.email,
+            subject: 'Reset Password',
+            html: `
+                <div>
+                    <h1>Grocery ToDo App</h1>
+                    <p>Hello ${user.firstName} ${user.lastName}, </p> <br>
+
+                    <p>Please click <a href="${resetLink}"> here </a> to reset password.<p>
+                    
+                    Thank you
+                </div>
+            `
+        }
+
+        email.sendEmail(mailOptions);
+
+        return res.send('Email sent. Please check email/spam folder. Thank you');
+    }
+    catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+})
+
+//Verify password token
+router.get('/verifyPasswordToken/:token', async (req, res) => {
+    try {
+
+        let token = await User.findOne({ "resetPasswordToken.token": req.params.token });
+        if (!token) return res.status(400).send({ message: 'Token not found' });
+
+        return res.send({ message: true })
+
+    }
+    catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+})
+
+//Reset Password and delete token
+router.post('/resetPassword', async (req, res) => {
+    try {
+
+        let user = await User.findOne({ "resetPasswordToken.token": req.body.token });
+        if (!user) return res.status(400).send({ message: 'Token not found' });
+
+        const salt = await bcrypt.genSalt(10)
+        let saltPassword = await bcrypt.hash(req.body.password, salt);
+
+        await User.findOneAndUpdate({ _id: user._id }, {
+            $set: {
+                password: saltPassword, resetPasswordToken
+                    : []
+            }
+        }, { new: true }, (err, doc) => {
+            if (err) {
+                return res.status(500).send(`Internal Server Error`);
+            }
+            return res.send(doc);
+        });
+    }
+
+    catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`)
     }
 })
 

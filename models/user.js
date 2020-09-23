@@ -3,6 +3,11 @@ const Joi = require('joi');
 const config = require('config');
 const jwt = require('jsonwebtoken');
 
+const tokenSchema = new mongoose.Schema({
+    token: { type: String, required: true },
+    createdDate: { type: String, default: Date }
+});
+
 const userSchema = new mongoose.Schema({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
@@ -14,7 +19,8 @@ const userSchema = new mongoose.Schema({
     address: { type: String },
     city: { type: String },
     zipCode: { type: String },
-    state: { type: String }
+    state: { type: String },
+    resetPasswordToken: { type: [tokenSchema], default: {} }
 });
 
 userSchema.methods.generateAuthToken = function () {
@@ -55,9 +61,18 @@ function validateLogin(user){
     return schema.validate(user);
 }
 
-
+function generateToken(length) {
+    let result = '';
+    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
 
 exports.User = User;
 exports.validateUser = validateUser;
 exports.validateUpdateUser = validateUpdateUser;
 exports.validateLogin = validateLogin;
+exports.generateToken = generateToken;

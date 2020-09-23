@@ -6,16 +6,16 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const { auth } = require('../middleware/auth');
 const email = require('./sendEmail');
+const config = require('config');
 
 //Invite User to list
 router.post('/listInvite', async (req, res) => {
     try {
 
-        let baseUrl = 'http://localhost:3000';
         let to = req.body.toEmail;
         let from = req.body.fromEmail;
 
-        let subscribeLink = `${baseUrl}/InviteRequests?listId=${req.body.listId}&toUser=${req.body.toId}`
+        let subscribeLink = `${config.mainAppUrl}/InviteRequests?listId=${req.body.listId}&toUser=${req.body.toId}`
         let mailOptions = {
             from: from,
             to: to,
