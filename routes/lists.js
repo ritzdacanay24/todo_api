@@ -1,12 +1,45 @@
 const { Item } = require('../models/item');
-const { List, validateList, validateListUpdate } = require('../models/list');
+const { List, validateList } = require('../models/list');
 const { User } = require('../models/user');
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const { auth } = require('../middleware/auth');
+const email = require('./sendEmail');
 
-//create list
+//Invite User to list
+router.post('/listInvite', async (req, res) => {
+    try {
+
+        let baseUrl = 'http://localhost:3000';
+        let to = req.body.toEmail;
+        let from = req.body.fromEmail;
+
+        let subscribeLink = `${baseUrl}/InviteRequests?listId=${req.body.listId}&toUser=${req.body.toId}`
+        let mailOptions = {
+            from: from,
+            to: to,
+            subject: 'Grocery ToDo Invite',
+            html: `
+                <div>
+                    <p>Hello ${to}, </p> <br>
+
+                    <p>${from} has sent you an invite to his/her grocery todo app.<p>
+                    <p>Please accept this invitation.<p>
+                    <a href="${subscribeLink}"><button>Subscribe</button></a>
+                    <h4>THIS IS ONLY A TEST</h4>
+                </div>
+            `
+        }
+
+        email.sendEmail(mailOptions);
+    }
+    catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+})
+
+// create list
 // return new data with id
 router.post('/', auth, async (req, res) => {
 
@@ -37,7 +70,7 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
-//update list by id
+// update list by id
 // returns new data
 router.put('/:listId', auth, async (req, res) => {
 
@@ -61,7 +94,7 @@ router.put('/:listId', auth, async (req, res) => {
     }
 });
 
-//delete list by id
+// delete list by id
 router.delete('/:listId', auth, async (req, res) => {
     try {
 
@@ -88,6 +121,7 @@ router.get('/:currentUserid', auth, async (req, res) => {
         if (!mongoose.Types.ObjectId.isValid(req.params.currentUserid)) return res.status(400).send("Invalid object id");
 
         //let lists = await List.find({ "userId": req.params.currentUserid, "active": { "$ne": "0" } });
+        //Query is now updated to include subscribers
         let lists = await List.find({ $or: [{ 'userId': req.params.currentUserid }, { 'subscribers': { $in: [req.params.currentUserid] } }] });
         let listDetails = await Item.find({ createdBy: req.params.currentUserid });
 
@@ -120,7 +154,7 @@ router.put('/subscribers/:listId/:currentUserid', async (req, res) => {
         list.subscribers.push(req.params.currentUserid);
 
         list.save();
-        return res.send(list);
+        return res.send({ message: `Thank you for subscribing to list ${list.name}` });
 
     } catch (ex) {
         return res.status(500).send(`Internal Server Error: ${ex}`);
