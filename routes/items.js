@@ -90,6 +90,40 @@ router.get('/:listId', auth, async (req, res) => {
 });
 
 
+// duplicate item
+// return newly added bulk items with its id's
+router.post('/duplicateItem/:currentUser/:listId', auth, async (req, res) => {
+    try {
+
+        const isUserFound = await User.findById(req.params.currentUser);
+        if (!isUserFound) return res.status(400).send(`User "${req.params.currentUser}" not found in the system`)
+
+        const isListFound = await List.findOne({ _id: req.params.listId });
+        if (!isListFound) return res.status(400).send(`List id "${req.params.listId}" not found.`);
+
+        let items = req.body;
+
+        items.forEach(function (element) {
+            element.listId = req.params.listId;
+            element.createdBy = req.params.currentUser;
+            element._id = mongoose.Types.ObjectId();
+            element.original = element.original + ' (Copy) ';
+        });
+
+        let newlist = await Item.insertMany(items,
+            {
+                writeConcern: true,
+                ordered: true
+            }
+        )
+
+        return res.send(newlist);
+
+    } catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+});
+
 //arrays
 
 // create bulk items
@@ -124,6 +158,7 @@ router.post('/saveBulkItems/:currentUser/:listId', auth, async (req, res) => {
         return res.status(500).send(`Internal Server Error: ${ex}`);
     }
 });
+
 
 // delete bulk items
 // return newly added bulk items with its id's
