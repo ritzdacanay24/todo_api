@@ -5,7 +5,7 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const { auth } = require('../middleware/auth');
-const email = require('./sendEmail');
+const { sendEmail } = require('./sendEmail');
 const config = require('config');
 
 //Invite User to list
@@ -15,7 +15,7 @@ router.post('/listInvite', async (req, res) => {
         let to = req.body.toEmail;
         let from = req.body.fromEmail;
 
-        let subscribeLink = `${config.mainAppUrl}/InviteRequests?listId=${req.body.listId}&toUser=${req.body.toId}`
+        let subscribeLink = `${config.mainAppUrl}InviteRequests?listId=${req.body.listId}&toUser=${req.body.toId}`
         let mailOptions = {
             from: from,
             to: to,
@@ -32,9 +32,10 @@ router.post('/listInvite', async (req, res) => {
             `
         }
 
-        email.sendEmail(mailOptions);
-    }
-    catch (ex) {
+        sendEmail(mailOptions)
+        return res.send('email sent');
+
+    } catch (ex) {
         return res.status(500).send(`Internal Server Error: ${ex}`);
     }
 })

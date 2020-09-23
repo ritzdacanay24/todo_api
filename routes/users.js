@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const { auth } = require('../middleware/auth');
-const email = require('./sendEmail');
+const { sendEmail } = require('./sendEmail');
 const config = require('config');
 
 //create user
@@ -139,7 +139,7 @@ router.post('/forgotPassword', async (req, res) => {
             `
         }
 
-        email.sendEmail(mailOptions);
+        sendEmail(mailOptions)
 
         return res.send('Email sent. Please check email/spam folder. Thank you');
     }

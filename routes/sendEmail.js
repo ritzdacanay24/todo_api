@@ -19,8 +19,13 @@ const sendEmail = async (mailOptions) => {
         }
     });
 
-    smtpTransport.sendMail(mailOptions);
-    
+    smtpTransport.sendMail(mailOptions, function (error, response) {
+        if (error) {
+            return false;
+        } else {
+            return true;
+        }
+    });
 };
 
 exports.sendEmail = sendEmail;
