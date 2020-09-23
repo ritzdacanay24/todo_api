@@ -56,6 +56,21 @@ router.put('/:userId', auth, async (req, res) => {
     }
 })
 
+//delete user by Id
+router.delete('/:userId', auth, async (req, res) => {
+    try {
+
+        User.findOneAndRemove({ _id: req.params.userId }, function (err, doc) {
+            if (err) return res.send(500, { error: err });
+            return res.send(doc);
+        });
+    }
+
+    catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`)
+    }
+})
+
 //Get all Users
 //Returns an array
 router.get('/', auth, async (req, res) => {
