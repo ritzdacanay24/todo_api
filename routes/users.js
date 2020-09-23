@@ -46,7 +46,7 @@ router.put('/:userId', auth, async (req, res) => {
         if (!user) return res.status(400).send("User not found.")
 
         User.findOneAndUpdate({ _id: userId }, { $set: req.body }, { upsert: true, new: true }, function (err, doc) {
-            if (err) return res.send(500, { error: err });
+            if (err) return  res.status(500).send(`Internal Server Error: ${err}`)
             return res.send(doc);
         });
     }
@@ -61,7 +61,7 @@ router.delete('/:userId', auth, async (req, res) => {
     try {
 
         User.findOneAndRemove({ _id: req.params.userId }, function (err, doc) {
-            if (err) return res.send(500, { error: err });
+            if (err) return  res.status(500).send(`Internal Server Error: ${err}`)
             return res.send(doc);
         });
     }
