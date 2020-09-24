@@ -9,6 +9,7 @@ const user = require('./routes/users')
 const list = require('./routes/lists')
 const items = require('./routes/items')
 const recipes = require('./routes/recipes')
+const supports = require('./routes/support')
 
 //3rd party api
 const kroger = require('./routes/kroger')
@@ -26,6 +27,8 @@ app.use("/api/users", user);
 app.use("/api/lists", list);
 app.use("/api/items", items);
 app.use("/api/recipes", recipes);
+app.use("/api/supports", supports);
+
 app.use("/api/kroger", kroger);
 app.use("/api/spoonacular", spoonacular);
 
