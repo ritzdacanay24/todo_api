@@ -93,5 +93,23 @@ router.get('/location/:locationId', auth, function (req, res) {
     })
 });
 
+//search location by zipCode
+router.get('/locations/:zipCode/zipCode/location', function (req, res) {
+    let zipCode = req.params.zipCode;
+    let accToken = req.headers.authorization.split(' ')[1];
+
+    request({
+        method: 'GET',
+        uri: `https://api.kroger.com/v1/locations?filter.zipCode.near=${zipCode}&filter.limit=5&filter.radiusInMiles=100`,
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Content-Type": "application/json; charset=utf-8",
+            Authorization: `Bearer ${accToken}`
+        }
+    }, function (error, response, body) {
+        res.json(JSON.parse(body));
+    })
+});
+
 
 module.exports = router
