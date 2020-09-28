@@ -214,11 +214,9 @@ router.delete('/subscribers/:listId/:currentUserid', async (req, res) => {
     try {
 
         let list = await List.findOne({ "_id": req.params.listId });
-        let isFound = list.subscribers.includes(req.params.currentUserid);
-        if (!isFound) res.status(400).send("User not found in subscribed list.");
 
         for (let i = 0; i < list.subscribers.length; i++)
-            if (list.subscribers[i] === req.params.currentUserid) {
+            if (list.subscribers[i].userId === req.params.currentUserid) {
                 list.subscribers.splice(i, 1);
                 break;
             }
