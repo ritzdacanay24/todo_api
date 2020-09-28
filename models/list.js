@@ -65,6 +65,12 @@ const groupSchema = new mongoose.Schema({
     icon: { type: String, default: "path/to/icon", required: false }
 });
 
+const subscribersSchema = new mongoose.Schema({
+    userId: { type: String, required: false },
+    createdDate: { type: String, required: true, default: Date },
+    isSubscribed: { type: Boolean, default: false }
+});
+
 const listSchema = new mongoose.Schema({
     userId: { type: String, required: true },
     createdDate: { type: String, required: true, default: Date },
@@ -76,7 +82,7 @@ const listSchema = new mongoose.Schema({
     detailCount: { type: Number, default: 0 },
     archive: { type: Boolean, default: false, enum: [false, true] },
     groups: { type: [groupSchema], default: groupList },
-    subscribers: { type: Array,  default: [] }
+    subscribers: { type: [subscribersSchema],  default: [] }
 });
 
 const List = mongoose.model('list', listSchema);

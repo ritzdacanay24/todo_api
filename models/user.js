@@ -20,7 +20,8 @@ const userSchema = new mongoose.Schema({
     city: { type: String },
     zipCode: { type: String },
     state: { type: String },
-    resetPasswordToken: { type: [tokenSchema], default: {} }
+    resetPasswordToken: { type: [tokenSchema], default: {} },
+    subscribedTo: { type: Object }
 });
 
 userSchema.methods.generateAuthToken = function () {

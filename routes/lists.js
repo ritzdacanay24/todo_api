@@ -27,18 +27,52 @@ router.post('/listInvite', async (req, res) => {
                     <p>${from} has sent you an invite to his/her grocery todo app.<p>
                     <p>Please accept this invitation.<p>
                     <a href="${subscribeLink}"><button>Subscribe</button></a>
-                    <h4>THIS IS ONLY A TEST</h4>
                 </div>
             `
         }
 
-        sendEmail(mailOptions)
-        return res.send('email sent');
+        let list = await List.findOne({ "_id": req.body.listId });
+
+        for (let i = 0; i < list.subscribers.length; i++) {
+            if (list.subscribers[i].userId === req.body.toId) {
+                return res.status(400).send("Already added user. ");
+            }
+        }
+
+        list.subscribers.push({ userId: req.body.toId })
+        await list.save();
+
+        sendEmail(mailOptions);
+        return res.send(list);
 
     } catch (ex) {
         return res.status(500).send(`Internal Server Error: ${ex}`);
     }
 })
+
+//Get pending and accepeted list invites
+router.get('/getSubscribers/:userId/:listId', async (req, res) => {
+
+    try {
+
+        let users = await User.find();
+        let lists = await List.findOne({ _id: req.params.listId });
+
+        for (let i = 0; i < users.length; i++) {
+            for (let ii = 0; ii < lists.subscribers.length; ii++) {
+                if (users[i]._id == lists.subscribers[ii].userId) {
+                    users[i].subscribedTo = lists.subscribers[ii];
+                }
+            }
+        }
+
+        return res.send(users);
+
+    } catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+});
+
 
 // create list
 // return new data with id
@@ -123,7 +157,7 @@ router.get('/:currentUserid', auth, async (req, res) => {
 
         //let lists = await List.find({ "userId": req.params.currentUserid, "active": { "$ne": "0" } });
         //Query is now updated to include subscribers
-        let lists = await List.find({ $or: [{ 'userId': req.params.currentUserid }, { 'subscribers': { $in: [req.params.currentUserid] } }] });
+        let lists = await List.find({ $or: [{ 'userId': req.params.currentUserid }, { 'subscribers.userId': { $in: [req.params.currentUserid] } }] });
         let listDetails = await Item.find({ createdBy: req.params.currentUserid });
 
         //get total list details for each list.
@@ -149,13 +183,26 @@ router.get('/:currentUserid', auth, async (req, res) => {
 router.put('/subscribers/:listId/:currentUserid', async (req, res) => {
     try {
 
+        let userFound = false
         let list = await List.findOne({ "_id": req.params.listId });
-        let isFound = list.subscribers.includes(req.params.currentUserid);
-        if (isFound) return res.status(400).send("User already subscribed");
-        list.subscribers.push(req.params.currentUserid);
+        for (let ii = 0; ii < list.subscribers.length; ii++) {
+            if (list.subscribers[ii].userId === req.params.currentUserid) {
+                userFound = true
+                if (list.subscribers[ii].isSubscribed) {
+                    return res.status(400).send(`You are already subscribed to grocery todo list '${list.name}'`);
+                } else {
+                    list.subscribers[ii].isSubscribed = true;
+                    break;
+                }
+            }
+        }
+
+        if(!userFound){
+            return res.status(400).send(`You were removed from the invite. You can no longer subscribe to the grocery list '${list.name}'`);
+        }
 
         list.save();
-        return res.send({ message: `Thank you for subscribing to list ${list.name}` });
+        return res.send({ message: `Thank you for subscribing to grocery todo list '${list.name}'` });
 
     } catch (ex) {
         return res.status(500).send(`Internal Server Error: ${ex}`);
